@@ -1,0 +1,28 @@
+{
+  "name": "primipilus/downloader",
+  "description": "download file",
+  "keywords": [
+    "download",
+    "http download",
+    "download file"
+  ],
+  "homepage": "https://github.com/primipilus/downloader",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Leonid Gushchin",
+      "email": "primipilus13@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1.0",
+    "ext-curl": "*",
+    "primipilus/fileinfo": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "primipilus\\downloader\\": "src/"
+    }
+  }
+}
