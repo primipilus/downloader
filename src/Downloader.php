@@ -6,6 +6,7 @@
 namespace primipilus\downloader;
 
 use primipilus\downloader\exceptions\BaseException;
+use primipilus\fileinfo\exceptions\BaseException as FileInfoBaseException;
 use ReflectionClass;
 use ReflectionException;
 
@@ -36,19 +37,40 @@ abstract class Downloader
     /** @var string */
     private $_temporaryDir = '/tmp';
     /** @var integer */
-    private $_dirPermissions = 0775;
-    /** @var integer */
-    private $_filePermissions = 0664;
+    private $_attempts = 5;
 
     /**
-     * @param string $type ClassName or Alias for Downloader
+     * Get Singleton instance of Downloader
      *
+     * @param string $type ClassName or Alias for Downloader
      * @param array $config config of (key, value) ['temporaryDir' => '/tmp']
      *
      * @return Downloader
      * @throws BaseException
      */
-    final public static function createDownloader(string $type, array $config = []) : Downloader
+    final public static function getInstance(string $type, array $config = []) : Downloader
+    {
+        if (isset(self::$builtInDownloaders[$type])) {
+            $type = self::$builtInDownloaders[$type];
+        }
+
+        if (!isset(self::$downloaders[$type])) {
+            self::$downloaders[$type] = self::createInstance($type, $config);
+        }
+
+        return self::$downloaders[$type];
+    }
+
+    /**
+     * Create new instance of Downloader
+     *
+     * @param string $type ClassName or Alias for Downloader
+     * @param array $config config of (key, value) ['temporaryDir' => '/tmp']
+     *
+     * @return Downloader
+     * @throws BaseException
+     */
+    final public static function createInstance(string $type, array $config = []) : Downloader
     {
         if (isset(self::$builtInDownloaders[$type])) {
             $type = self::$builtInDownloaders[$type];
@@ -66,19 +88,16 @@ abstract class Downloader
             }
         }
 
-        if (!isset(self::$downloaders[$type])) {
-            self::$downloaders[$type] = new $type;
-            foreach ($config as $key => $value) {
-                // todo change to set method
-                self::$downloaders[$type]->{$key} = $value;
-            }
+        $downloader = new $type;
+        foreach ($config as $key => $value) {
+            $downloader->{$key} = $value;
         }
 
-        return self::$downloaders[$type];
+        return $downloader;
     }
 
     /**
-     * Downloading file to tmp dir
+     * Downloading file to temporaryDir
      *
      * @param string $fileFrom
      * @param string|null $md5
@@ -86,7 +105,45 @@ abstract class Downloader
      * @return DownloadedFile|null
      * @throws BaseException
      */
-    abstract public function downloadFile(string $fileFrom, string $md5 = null) : ?DownloadedFile;
+    public function downloadFile(string $fileFrom, string $md5 = null) : ?DownloadedFile
+    {
+        $original = basename($fileFrom);
+
+        $fileTo = rtrim($this->_temporaryDir, '/') . '/' . $this->createFileName($fileFrom);
+
+        for ($i = 0; $i < $this->_attempts; $i++) {
+            $this->saveFile($fileFrom, $fileTo);
+
+            try {
+                return new DownloadedFile($fileTo, $original);
+            } catch (FileInfoBaseException $e) {
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * create path for new file
+     *
+     * @param string $fileFrom
+     *
+     * @return string
+     */
+    protected function createFileName(string $fileFrom) : string
+    {
+        $extension = strtolower(pathinfo($fileFrom, PATHINFO_EXTENSION));
+
+        return microtime(true) . sha1($fileFrom) . '.' . $extension;
+    }
+
+    /**
+     * Save file from source to fileTo
+     *
+     * @param string $fileFrom
+     * @param string $fileTo
+     */
+    abstract protected function saveFile(string $fileFrom, string $fileTo) : void;
 
     /**
      * @return string
@@ -94,6 +151,23 @@ abstract class Downloader
     public function getTemporaryDir() : string
     {
         return $this->_temporaryDir;
+    }
+
+    /**
+     * @param string $temporaryDir
+     *
+     * @throws BaseException
+     */
+    public function setTemporaryDir(string $temporaryDir) : void
+    {
+        if (!file_exists($temporaryDir)) {
+            throw new BaseException('Dir ' . $temporaryDir . ' is not exists');
+        }
+        if (!is_dir($temporaryDir)) {
+            throw new BaseException('Path ' . $temporaryDir . ' is not a dir');
+        }
+
+        $this->_temporaryDir = $temporaryDir;
     }
 
     /**
@@ -119,49 +193,19 @@ abstract class Downloader
     }
 
     /**
-     * create path for new file
-     *
-     * @param string $fileFrom
-     *
-     * @return string
+     * @return int
      */
-    protected function createFileName(string $fileFrom) : string
+    public function getAttempts(): int
     {
-        $extension = strtolower(pathinfo($fileFrom, PATHINFO_EXTENSION));
-
-        return microtime(true) . sha1($fileFrom) . '.' . $extension;
+        return $this->_attempts;
     }
 
     /**
-     * @param string $temporaryDir
-     *
-     * @throws BaseException
+     * @param int $attempts
      */
-    private function setTemporaryDir(string $temporaryDir) : void
+    public function setAttempts(int $attempts)
     {
-        if (!file_exists($temporaryDir)) {
-            throw new BaseException('Dir ' . $temporaryDir . ' is not exists');
-        }
-        if (!is_dir($temporaryDir)) {
-            throw new BaseException('Path ' . $temporaryDir . ' is not a dir');
-        }
-
-        $this->_temporaryDir = $temporaryDir;
+        $this->_attempts = $attempts > 0 ? $attempts : 1;
     }
 
-    /**
-     * @param string $permissions
-     */
-    private function setDirPermissions(string $permissions) : void
-    {
-        $this->_dirPermissions = $permissions;
-    }
-
-    /**
-     * @param string $permissions
-     */
-    private function setFilePermissons(string $permissions) : void
-    {
-        $this->_filePermissions = $permissions;
-    }
 }
