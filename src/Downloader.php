@@ -115,7 +115,12 @@ abstract class Downloader
             $this->saveFile($fileFrom, $fileTo);
 
             try {
-                return new DownloadedFile($fileTo, $original);
+                $file = new DownloadedFile($fileTo, $original);
+                if (is_null($md5) || $md5 === $file->getInfo()->md5) {
+                    return $file;
+                } else {
+                    @unlink($fileTo);
+                }
             } catch (FileInfoBaseException $e) {
             }
         }
@@ -189,6 +194,8 @@ abstract class Downloader
     {
         if (method_exists($this, 'set' . $name)) {
             call_user_func([$this, 'set' . $name], $value);
+        } else {
+            throw new BaseException('property ' . $name . ' does not exists');
         }
     }
 

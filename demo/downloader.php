@@ -8,7 +8,7 @@ use primipilus\downloader\exceptions\BaseException;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 try {
-    $downloader = \primipilus\downloader\Downloader::getInstance('http', ['temporaryDir' => __DIR__]);
+    $downloader = \primipilus\downloader\Downloader::getInstance('http', ['temporaryDir' => __DIR__, 'attempts' => 5]);
 } catch (BaseException $e) {
     echo $e->getMessage(), PHP_EOL;
     exit();
@@ -18,12 +18,13 @@ $files = [
     'https://images-na.ssl-images-amazon.com/images/G/01/img15/pet-products/small-tiles/23695_pets_vertical_store_dogs_small_tile_8._CB312176604_.jpg',
 ];
 foreach ($files as $file) {
-    if ($file = $downloader->downloadFile($file)) {
+    if ($file = $downloader->downloadFile($file, '2c889c99da4511249b33dc1c99d13754')) {
         echo $file->getOriginal(), PHP_EOL;
         echo $file->getInfo()->path, PHP_EOL;
         echo $file->getInfo()->basename, PHP_EOL;
         echo $file->getInfo()->filename, PHP_EOL;
         echo $file->getInfo()->extension, PHP_EOL;
+        echo $file->getInfo()->md5, PHP_EOL;
         if ($file->getInfo()->isImage) {
             echo $file->getInfo()->image->width . ' px', PHP_EOL;
             echo $file->getInfo()->image->height . ' px', PHP_EOL;
