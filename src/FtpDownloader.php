@@ -2,6 +2,7 @@
 
 namespace primipilus\downloader;
 
+use FtpClient\FtpClient;
 use primipilus\downloader\exceptions\BaseException;
 
 /**
@@ -13,7 +14,23 @@ use primipilus\downloader\exceptions\BaseException;
 class FtpDownloader extends Downloader
 {
     /** @var  FtpClient */
-    protected $ftpClient;
+    private $_ftpClient;
+
+    /**
+     * @return FtpClient
+     */
+    public function getFtpClient() : FtpClient
+    {
+        return $this->_ftpClient;
+    }
+
+    /**
+     * @param FtpClient $ftpClient
+     */
+    public function setFtpClient(FtpClient $ftpClient)
+    {
+        $this->_ftpClient = $ftpClient;
+    }
 
     /**
      * @param string $fileFrom
@@ -23,7 +40,7 @@ class FtpDownloader extends Downloader
      */
     protected function saveFile(string $fileFrom, string $fileTo) : void
     {
-        if (!@$this->ftpClient->get($fileTo, $fileFrom, FTP_BINARY)) {
+        if (!@$this->_ftpClient->get($fileTo, $fileFrom, FTP_BINARY)) {
             throw new BaseException("File " . $fileFrom . " not exists");
         }
     }
