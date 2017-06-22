@@ -26,7 +26,8 @@ abstract class Downloader
      * @var array list of built-in downloaders
      */
     private static $builtInDownloaders = [
-        'http' => HttpDownloader::class,
+        'http'  => HttpDownloader::class,
+        'ftp'   => FtpDownloader::class,
     ];
 
     /**
@@ -101,11 +102,10 @@ abstract class Downloader
      *
      * @param string $fileFrom
      * @param string|null $md5
-     *
+     * @param string|null $sha1
      * @return DownloadedFile|null
-     * @throws BaseException
      */
-    public function downloadFile(string $fileFrom, string $md5 = null) : ?DownloadedFile
+    public function downloadFile(string $fileFrom, ?string $md5 = null, ?string $sha1 = null) : ?DownloadedFile
     {
         $original = basename($fileFrom);
 
@@ -116,7 +116,7 @@ abstract class Downloader
 
             try {
                 $file = new DownloadedFile($fileTo, $original);
-                if (is_null($md5) || $md5 === $file->getInfo()->md5) {
+                if ((is_null($md5) || $md5 === $file->getInfo()->md5) and (is_null($sha1) || $sha1 === $file->getInfo()->sha1)) {
                     return $file;
                 } else {
                     @unlink($fileTo);
