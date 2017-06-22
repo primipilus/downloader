@@ -5,7 +5,6 @@
 
 namespace primipilus\downloader;
 
-use fs\core\common\helpers\file\FtpDownloader;
 use primipilus\downloader\exceptions\BaseException;
 use primipilus\fileinfo\exceptions\BaseException as FileInfoBaseException;
 use ReflectionClass;

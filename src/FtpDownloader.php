@@ -1,8 +1,7 @@
 <?php
 
-namespace fs\core\common\helpers\file;
+namespace primipilus\downloader;
 
-use primipilus\downloader\Downloader;
 use primipilus\downloader\exceptions\BaseException;
 
 /**
@@ -22,7 +21,7 @@ class FtpDownloader extends Downloader
      *
      * @throws BaseException
      */
-    protected function saveFile(string $fileFrom, string $fileTo): void
+    protected function saveFile(string $fileFrom, string $fileTo) : void
     {
         if (!@$this->ftpClient->get($fileTo, $fileFrom, FTP_BINARY)) {
             throw new BaseException("File " . $fileFrom . " not exists");
