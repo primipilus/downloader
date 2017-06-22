@@ -5,7 +5,7 @@ Composer install
 ----------------
 
 ```bash
-composer require "primipilus/downloader:~1.0"
+composer require "primipilus/downloader:~2.0"
 ```
 
 Usage
@@ -14,6 +14,12 @@ Usage
 ```php
 try {
     $downloader = \primipilus\downloader\Downloader::getInstance('http', ['temporaryDir' => __DIR__, 'attempts' => 5]);
+} catch (BaseException $e) {
+}
+
+$client = new FtpClient\FtpClient();
+try {
+    $downloader = \primipilus\downloader\Downloader::getInstance('ftp', ['temporaryDir' => __DIR__, 'attempts' => 5, 'client' => $client]);
 } catch (BaseException $e) {
 }
 

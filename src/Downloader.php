@@ -15,7 +15,8 @@ use ReflectionException;
  *
  * Базовый класс зашрузчик
  *
- * @property-read string $temporaryDir
+ * @property string $temporaryDir
+ * @property string $attempts
  *
  * @package primipilus\downloader
  */
@@ -26,8 +27,8 @@ abstract class Downloader
      * @var array list of built-in downloaders
      */
     private static $builtInDownloaders = [
-        'http'  => HttpDownloader::class,
-        'ftp'   => FtpDownloader::class,
+        'http' => HttpDownloader::class,
+        'ftp'  => FtpDownloader::class,
     ];
 
     /**
@@ -103,6 +104,7 @@ abstract class Downloader
      * @param string $fileFrom
      * @param string|null $md5
      * @param string|null $sha1
+     *
      * @return DownloadedFile|null
      */
     public function downloadFile(string $fileFrom, ?string $md5 = null, ?string $sha1 = null) : ?DownloadedFile
@@ -202,7 +204,7 @@ abstract class Downloader
     /**
      * @return int
      */
-    public function getAttempts(): int
+    public function getAttempts() : int
     {
         return $this->_attempts;
     }
