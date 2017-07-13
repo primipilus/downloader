@@ -43,7 +43,12 @@ class FtpDownloader extends Downloader
      */
     protected function saveFile(string $fileFrom, string $fileTo) : void
     {
-        if (!@$this->_client->get($fileTo, $fileFrom, FTP_BINARY)) {
+        try {
+            $result = $this->_client->get($fileTo, $fileFrom, FTP_BINARY);
+        } catch (\Exception|\Error $e) {
+            throw new BaseException("Error download file " . $fileFrom, 0, $e);
+        }
+        if (!$result) {
             throw new BaseException("File " . $fileFrom . " not exists");
         }
     }
