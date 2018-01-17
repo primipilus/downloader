@@ -114,7 +114,11 @@ abstract class Downloader
         $fileTo = rtrim($this->_temporaryDir, '/') . '/' . $this->createFileName($fileFrom);
 
         for ($i = 0; $i < $this->_attempts; $i++) {
-            $this->saveFile($fileFrom, $fileTo);
+            try {
+                $this->saveFile($fileFrom, $fileTo);
+            } catch (BaseException $e) {
+                continue;
+            }
 
             try {
                 $file = new DownloadedFile($fileTo, $original);
@@ -149,6 +153,8 @@ abstract class Downloader
      *
      * @param string $fileFrom
      * @param string $fileTo
+     *
+     * @throws BaseException
      */
     abstract protected function saveFile(string $fileFrom, string $fileTo) : void;
 
